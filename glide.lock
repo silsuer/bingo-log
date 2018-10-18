@@ -1,0 +1,6 @@
+hash: c5ae42c8867b0033c5d71ac2b6170a809d5208b2d504dd048132952a55c3d5b8
+updated: 2018-10-17T22:01:10.140537308+08:00
+imports:
+- name: github.com/ivpusic/grpool
+  version: 28957a27c9441f178d644aa598bac0aad4dd7bba
+testImports: []
