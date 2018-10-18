@@ -3,7 +3,7 @@ package bingo_log
 import (
 	"log"
 	"github.com/ivpusic/grpool"
-	)
+)
 
 // log 包
 // 1. 设定一个全局变量用来输出日志
@@ -21,18 +21,18 @@ var Logger Log // 全局log
 
 type Log struct {
 	log.Logger
-	initialized        bool         // 该日志对象是否初始化
-	mode               int          // 日志记录模式 0 同步记录 2 协程池记录
-	pool               *grpool.Pool // 协程池
-	poolWorkerNum      int          // 协程池模式下，允许的最高协程数
-	poolJobQueueLength int          // 协程池中允许的job长度
+	initialized     bool         // 该日志对象是否初始化
+	mode            int          // 日志记录模式 0 同步记录 2 协程池记录
+	pool            *grpool.Pool // 协程池
+	poolExpiredTime int          // 协程池模式下，每个空闲协程的存活时间
+	poolWorkerNum   int          // 协程池模式下，允许的最高协程数
 }
 
 // 初始化结构体,如果已经初始化过会再次初始化
 func (l *Log) initialize() {
 	if l.mode == LogPoolMode {
 		// 创建协程池
-		l.pool = grpool.NewPool(l.getPoolWorkerNum(), l.getPoolJobQueueLength())
+		l.pool = grpool.NewPool(l.getPoolWorkerNum(), l.getPoolWorkerNum())
 	}
 	l.initialized = true
 }
@@ -45,12 +45,12 @@ func (l *Log) getPoolWorkerNum() int {
 	return l.poolWorkerNum
 }
 
-// 获取协程池中允许的队列长度
-func (l *Log) getPoolJobQueueLength() int {
-	if l.poolJobQueueLength == 0 {
-		l.poolJobQueueLength = 50
+// 获取协程池中空闲协程的存活时间(秒)
+func (l *Log) getPoolExpiredTime() int {
+	if l.poolExpiredTime == 0 {
+		l.poolExpiredTime = 50
 	}
-	return l.poolJobQueueLength
+	return l.poolExpiredTime
 }
 
 // 判断该结构体是否被初始化
@@ -67,3 +67,5 @@ func (l *Log) SetMode(m int) {
 func (l *Log) set() {
 
 }
+
+

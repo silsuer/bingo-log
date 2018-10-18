@@ -1,3 +1,4 @@
 package: github.com/silsuer/bingo-log
 import:
 - package: github.com/ivpusic/grpool
+- package: github.com/xcltapestry/xclpkg
