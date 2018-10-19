@@ -1,24 +1,48 @@
 package bingo_log
 
 import (
-	"runtime"
 	"time"
 	"fmt"
-	"strconv"
 	"os"
 	"strings"
+	"runtime"
+	"strconv"
 )
 
 // 内置一些函数，需要的时候，直接实现一个连接器，组合数据即可
 
 // 抬头  [时间]+文件+行数+消息
-func KirinGetMessage(message ...interface{}) string {
-	_, file, line, ok := runtime.Caller(1)
+func KirinGetMessage(degree int, message ...interface{}) string {
+
+	var title string
+	switch degree {
+	case FATAL:
+		title = "[FATAL] "
+	case ERROR:
+		title = "[ERROR] "
+	case WARNING:
+		title = "[WARNING]"
+	case DEBUG:
+		title = "[DEBUG] "
+	case INFO:
+		title = "[INFO]"
+	default:
+		title = "[UNKNOWN]"
+	}
+
+	_, file, line, ok := runtime.Caller(7)
 	if !ok {
 		file = "???"
 		line = 0
 	}
-	return "[" + time.Now().Format("2006-01-02 15:04:05") + "] \n" + "[FILE] " + file + "\n[LINE] " + strconv.Itoa(line) + "\n" + "[CONTENT] " + fmt.Sprint(message) + "\n"
+
+	return `
+` + title + `
+[` + time.Now().Format("2006-01-02 15:04:05") + `] 
+[FILE] ` + file + `
+[LINE] ` + strconv.Itoa(line) + `
+[CONTENT] ` + fmt.Sprint(message...) + `
+`
 }
 
 // 配置一部分根目录
@@ -41,7 +65,6 @@ func KirinGetFile(config map[string]string) *os.File {
 	t := time.Now().Format(format)
 	// 生成文件完整路径
 	path := root + "/bingo_" + t + ".log"
-	fmt.Println(path)
 
 	// 打开或创建文件，得到文件句柄
 	return OpenOrCreateFile(path)

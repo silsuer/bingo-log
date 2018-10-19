@@ -6,11 +6,16 @@ import (
 
 func TestKirinConnector_GetMessage(t *testing.T) {
 	// 测试新的连接器
-	c := new(KirinConnector)
+	c := NewKirinConnector(make(map[string]string))
 	l := NewLog(LogSyncMode)
 	l.LoadConnector(c)
-	l.Info("KirinConnector testing")
+	l.Info("KirinConnector Info testing")
+	l.Fatal("KirinConnector Fatal testing")
+	l.Warning("KirinConnector Warning testing")
+	l.Debug("KirinConnector Debug testing")
+	l.Error("KirinConnector Error testing")
 }
+
 //
 //func TestKirinConnector_GetFile(t *testing.T) {
 //	type fields struct {

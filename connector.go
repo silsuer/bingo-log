@@ -14,10 +14,10 @@ type Connector interface {
 	Error(message ...interface{})
 	Warning(message ...interface{})
 	Debug(message ...interface{})
-	Info(message ...interface{})               // 打印
-	Output(message string)             // 将信息输出到文件中
-	GetMessage(message ...interface{}) string  // 将输入的信息添加抬头（例如添加打印时间等）
-	GetFile(config map[string]string) *os.File // 当前日志要输出到的文件位置,传入一个map 代表配置
+	Info(message ...interface{})                           // 打印
+	Output(message string)                                 // 将信息输出到文件中
+	GetMessage(degree int, message ...interface{}) string // 将输入的信息添加抬头（例如添加打印时间等）
+	GetFile(config map[string]string) *os.File             // 当前日志要输出到的文件位置,传入一个map 代表配置
 }
 
 // 分为5种日志级别
@@ -28,46 +28,62 @@ type Connector interface {
 // Info 普通消息
 
 // 基类连接器，实现简单的输出方法
-type BaseConnector struct{
+type BaseConnector struct {
 	sync.Mutex
 }
 
 func (b BaseConnector) Fatal(message ...interface{}) {
 	// 红色输出
-	m := "[FATAL] " + b.GetMessage(message)
+	m := b.GetMessage(FATAL, message...)
 	fmt.Print(clcolor.Red(m))
 	b.Output(m)
 }
+
 func (b BaseConnector) Error(message ...interface{}) {
 	// 紫色输出
-	m := "[ERROR] " + b.GetMessage(message)
+	m := b.GetMessage(ERROR, message...)
 	fmt.Print(clcolor.Magenta(m))
 	b.Output(m)
 }
 func (b BaseConnector) Warning(message ...interface{}) {
 	// 黄色输出
-	m := "[WARNING] " + b.GetMessage(message)
+	m := b.GetMessage(WARNING, message...)
 	fmt.Print(clcolor.Yellow(m))
 	b.Output(m)
 }
 func (b BaseConnector) Debug(message ...interface{}) {
 	// 蓝色输出
-	m := "[DEBUG] " + b.GetMessage(message)
+	m := b.GetMessage(DEBUG, message...)
 	fmt.Print(clcolor.Blue(m))
 	b.Output(m)
 }
 func (b BaseConnector) Info(message ...interface{}) {
 	// 绿色输出在控制台
-	m := "[INFO] " + b.GetMessage(message)
+	m := b.GetMessage(INFO, message...)
 	fmt.Print(clcolor.Green(m))
 	// 输出在文件中
 	b.Output(m)
 }
 
-func (b BaseConnector) GetMessage(message ...interface{}) string {
+func (b BaseConnector) GetMessage(degree int, message ...interface{}) string {
+	var title string
+	switch degree {
+	case FATAL:
+		title = "[FATAL] "
+	case ERROR:
+		title = "[ERROR] "
+	case WARNING:
+		title = "[WARNING]"
+	case DEBUG:
+		title = "[DEBUG] "
+	case INFO:
+		title = "[INFO]"
+	default:
+		title = "[UNKNOWN]"
+	}
 	// 将传入的信息扩展一下
 	// 默认添加当前时间
-	return "[" + time.Now().Format("2006-01-02 15:04:05") + "] " + fmt.Sprint(message...) + "\n"
+	return title + "[" + time.Now().Format("2006-01-02 15:04:05") + "] " + fmt.Sprint(message...) + "\n"
 }
 
 func (b BaseConnector) Output(message string) {
@@ -80,8 +96,7 @@ func (b BaseConnector) Output(message string) {
 }
 
 // 返回一个文件句柄，用来写入数据
-func (b BaseConnector) GetFile(config map[string]string) *os.File {
-	// 默认情况下，输出到当前路径下的bingo.log文件中
+func (b BaseConnector) GetFile(config map[string]string) *os.File { // 默认情况下，输出到当前路径下的bingo.log文件中
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)

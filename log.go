@@ -17,11 +17,18 @@ const (
 	LogPoolMode
 )
 
+const (
+	FATAL   = iota
+	ERROR
+	WARNING
+	DEBUG
+	INFO
+)
+
 var Logger Log // 全局log
 
 type Log struct {
-	//conn            *Connector   // 连接器，其中定义了绝大部分功能
-	Connector
+	Connector // 内嵌连接器，用来定制化功能
 	sync.Mutex
 	initialized     bool         // 该日志对象是否初始化
 	mode            int          // 日志记录模式 0 同步记录 2 协程池记录
