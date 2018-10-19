@@ -13,10 +13,10 @@ type Connector interface {
 	Error(message string)
 	Warning(message string)
 	Debug(message string)
-	Info(message string)               // 打印
-	Output(message string)             // 将信息输出到文件中
-	GetMessage(message string) string  // 将输入的信息添加抬头（例如添加打印时间等）
-	GetFile(configs []string) *os.File // 当前日志要输出到的文件位置,传入一个数组代表配置
+	Info(message string)                       // 打印
+	Output(message string)                     // 将信息输出到文件中
+	GetMessage(message string) string          // 将输入的信息添加抬头（例如添加打印时间等）
+	GetFile(config map[string]string) *os.File // 当前日志要输出到的文件位置,传入一个map 代表配置
 }
 
 // 分为5种日志级别
@@ -29,43 +29,77 @@ type Connector interface {
 // 基类连接器，实现简单的输出方法
 type BaseConnector struct{}
 
-func (b *BaseConnector) Fatal(message string) {
+func (b BaseConnector) Fatal(message string) {
 	// 红色输出
 	message = "[FATAL] " + b.GetMessage(message)
-	fmt.Println(clcolor.Red(message))
+	fmt.Print(clcolor.Red(message))
+	b.Output(message)
 }
-func (b *BaseConnector) Error(message string) {
+func (b BaseConnector) Error(message string) {
 	// 紫色输出
 	message = "[ERROR] " + b.GetMessage(message)
-	fmt.Println(clcolor.Magenta(message))
+	fmt.Print(clcolor.Magenta(message))
+	b.Output(message)
 }
-func (b *BaseConnector) Warning(message string) {
+func (b BaseConnector) Warning(message string) {
 	// 黄色输出
 	message = "[WARNING] " + b.GetMessage(message)
-	fmt.Println(clcolor.Yellow(message))
+	fmt.Print(clcolor.Yellow(message))
+	b.Output(message)
 }
-func (b *BaseConnector) Debug(message string) {
+func (b BaseConnector) Debug(message string) {
 	// 蓝色输出
 	message = "[DEBUG] " + b.GetMessage(message)
-	fmt.Println(clcolor.Blue(message))
+	fmt.Print(clcolor.Blue(message))
+	b.Output(message)
 }
-func (b *BaseConnector) Info(message string) {
+func (b BaseConnector) Info(message string) {
 	// 绿色输出在控制台
 	message = "[INFO] " + b.GetMessage(message)
-	fmt.Println(clcolor.Green(message))
+	fmt.Print(clcolor.Green(message))
 	// 输出在文件中
+	b.Output(message)
 }
 
-func (b *BaseConnector) GetMessage(message string) string {
+func (b BaseConnector) GetMessage(message string) string {
 	// 将传入的信息扩展一下
 	// 默认添加当前时间
-	return "[" + time.Now().Format("2006-01-02 15:04:05") + "] " + message
+	return "[" + time.Now().Format("2006-01-02 15:04:05") + "] " + message + "\n"
 }
 
-func (b *BaseConnector) Output(message string) {
+func (b BaseConnector) Output(message string) {
 	// 获取到要输出的文件路径
+	file := b.GetFile(make(map[string]string))
+	defer file.Close()
+	n, _ := file.Seek(0, os.SEEK_END)
+	// 写入数据
+	file.WriteAt([]byte(message), n)
 }
 
-func (b *BaseConnector) GetFile() *os.File {
+// 返回一个文件句柄，用来写入数据
+func (b BaseConnector) GetFile(config map[string]string) *os.File {
+	// 默认情况下，输出到当前路径下的bingo.log文件中
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	path := dir + "/bingo.log" // 真实要保存的文件位置
+	// 判断文件是否存在
+	if _, err := os.Stat(path); err != nil {
+		// 文件不存在,创建
+		f, err := os.Create(path)
+		//defer f.Close()  // 关闭操作要放在调用位置
+		if err != nil {
+			panic(err)
+		}
+		return f
+	}
+	// 打开该文件，追加模式
+	f, err := os.OpenFile(path, os.O_WRONLY, os.ModeAppend)
 
+	if err != nil {
+		panic(err)
+	}
+
+	return f
 }

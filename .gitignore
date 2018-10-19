@@ -1,2 +1,5 @@
 .idea/
 vendor/
+bingo.log
+example/bingo.log
+size_coverage.out
