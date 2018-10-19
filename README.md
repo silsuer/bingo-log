@@ -4,7 +4,7 @@
 
 ## 简介
 
-`bingo-log` 是为了 [Bingo]() 框架而制作的日志模块，我将其单独抽出来，使其可以单独使用而不依赖 `Bingo` 框架
+`bingo-log` 是为了 [Bingo](https://github.com/silsuer/bingo) 框架而制作的日志模块，我将其单独抽出来，使其可以单独使用而不依赖 `Bingo` 框架
 
 `bingo-log` 不依赖官方日志包，完全依靠自己的逻辑实现
 
