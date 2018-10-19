@@ -2,6 +2,7 @@ package bingo_log
 
 import (
 	"github.com/ivpusic/grpool"
+	"sync"
 )
 
 // log 包
@@ -21,6 +22,7 @@ var Logger Log // 全局log
 type Log struct {
 	//conn            *Connector   // 连接器，其中定义了绝大部分功能
 	Connector
+	sync.Mutex
 	initialized     bool         // 该日志对象是否初始化
 	mode            int          // 日志记录模式 0 同步记录 2 协程池记录
 	pool            *grpool.Pool // 协程池
@@ -112,12 +114,16 @@ func (l *Log) Info(message string) {
 	l.exec(l.Connector.Info, message)
 }
 
-func (l *Log) exec(f func(message string), message string) {
+func (l *Log) exec(f func(message ...interface{}), message string) {
 	// 同步模式
 	if l.mode == LogSyncMode {
+		l.Lock()
+		defer l.Unlock()
 		f(message)
 	} else if l.mode == LogPoolMode { // 协程池异步模式
 		l.initialize() // 先初始化
+		l.Lock()
+		defer l.Unlock()
 		l.AddWaitCount(1)
 		l.pool.JobQueue <- func() {
 			f(message)

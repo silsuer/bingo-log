@@ -645,7 +645,7 @@ func TestLog_exec(t *testing.T) {
 		poolWorkerNum   int
 	}
 	type args struct {
-		f       func(message string)
+		f       func(message ...interface{})
 		message string
 	}
 	tests := []struct {
@@ -664,9 +664,9 @@ func TestLog_exec(t *testing.T) {
 				poolWorkerNum   int
 			}{Connector: BaseConnector{}, initialized: false, mode: LogPoolMode, pool: grpool.NewPool(100, 50), poolExpiredTime: 50, poolWorkerNum: 100},
 			args: struct {
-				f       func(message string)
+				f       func(message ...interface{})
 				message string
-			}{f: func(message string) {
+			}{f: func(message ...interface{}) {
 				fmt.Println(message)
 			}, message: "Exec testing"},
 		},

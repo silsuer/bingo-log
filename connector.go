@@ -5,17 +5,18 @@ import (
 	"github.com/xcltapestry/xclpkg/clcolor"
 	"time"
 	"os"
+	"sync"
 )
 
 // 日志连接器接口，所有实现该接口的结构体都可以作为配置参数传入Log中，用来切割文件和异步执行等
 type Connector interface {
-	Fatal(message string)
-	Error(message string)
-	Warning(message string)
-	Debug(message string)
-	Info(message string)                       // 打印
-	Output(message string)                     // 将信息输出到文件中
-	GetMessage(message string) string          // 将输入的信息添加抬头（例如添加打印时间等）
+	Fatal(message ...interface{})
+	Error(message ...interface{})
+	Warning(message ...interface{})
+	Debug(message ...interface{})
+	Info(message ...interface{})               // 打印
+	Output(message string)             // 将信息输出到文件中
+	GetMessage(message ...interface{}) string  // 将输入的信息添加抬头（例如添加打印时间等）
 	GetFile(config map[string]string) *os.File // 当前日志要输出到的文件位置,传入一个map 代表配置
 }
 
@@ -27,44 +28,46 @@ type Connector interface {
 // Info 普通消息
 
 // 基类连接器，实现简单的输出方法
-type BaseConnector struct{}
+type BaseConnector struct{
+	sync.Mutex
+}
 
-func (b BaseConnector) Fatal(message string) {
+func (b BaseConnector) Fatal(message ...interface{}) {
 	// 红色输出
-	message = "[FATAL] " + b.GetMessage(message)
-	fmt.Print(clcolor.Red(message))
-	b.Output(message)
+	m := "[FATAL] " + b.GetMessage(message)
+	fmt.Print(clcolor.Red(m))
+	b.Output(m)
 }
-func (b BaseConnector) Error(message string) {
+func (b BaseConnector) Error(message ...interface{}) {
 	// 紫色输出
-	message = "[ERROR] " + b.GetMessage(message)
-	fmt.Print(clcolor.Magenta(message))
-	b.Output(message)
+	m := "[ERROR] " + b.GetMessage(message)
+	fmt.Print(clcolor.Magenta(m))
+	b.Output(m)
 }
-func (b BaseConnector) Warning(message string) {
+func (b BaseConnector) Warning(message ...interface{}) {
 	// 黄色输出
-	message = "[WARNING] " + b.GetMessage(message)
-	fmt.Print(clcolor.Yellow(message))
-	b.Output(message)
+	m := "[WARNING] " + b.GetMessage(message)
+	fmt.Print(clcolor.Yellow(m))
+	b.Output(m)
 }
-func (b BaseConnector) Debug(message string) {
+func (b BaseConnector) Debug(message ...interface{}) {
 	// 蓝色输出
-	message = "[DEBUG] " + b.GetMessage(message)
-	fmt.Print(clcolor.Blue(message))
-	b.Output(message)
+	m := "[DEBUG] " + b.GetMessage(message)
+	fmt.Print(clcolor.Blue(m))
+	b.Output(m)
 }
-func (b BaseConnector) Info(message string) {
+func (b BaseConnector) Info(message ...interface{}) {
 	// 绿色输出在控制台
-	message = "[INFO] " + b.GetMessage(message)
-	fmt.Print(clcolor.Green(message))
+	m := "[INFO] " + b.GetMessage(message)
+	fmt.Print(clcolor.Green(m))
 	// 输出在文件中
-	b.Output(message)
+	b.Output(m)
 }
 
-func (b BaseConnector) GetMessage(message string) string {
+func (b BaseConnector) GetMessage(message ...interface{}) string {
 	// 将传入的信息扩展一下
 	// 默认添加当前时间
-	return "[" + time.Now().Format("2006-01-02 15:04:05") + "] " + message + "\n"
+	return "[" + time.Now().Format("2006-01-02 15:04:05") + "] " + fmt.Sprint(message...) + "\n"
 }
 
 func (b BaseConnector) Output(message string) {
