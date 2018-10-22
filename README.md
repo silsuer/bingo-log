@@ -23,7 +23,7 @@ Features：
 ## 安装
 
 ```
-  go get github.com/silsuer/bingo-log
+  go get -u github.com/silsuer/bingo-log
 ```
 
 ## 使用
